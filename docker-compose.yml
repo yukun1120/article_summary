@@ -1,0 +1,10 @@
+version: '3'
+services:
+  python3:
+    restart: always
+    build: .
+    container_name: 'python3'
+    working_dir: '/usr/src/app'
+    tty: true
+    volumes:
+      - .:/usr/src/app

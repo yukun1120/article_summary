@@ -36,21 +36,29 @@ def get_all_paper_titles():
 def search_arxiv_papers(query, max_results=10):
     # arXivから論文を検索して結果を返す。
     all_titles = get_all_paper_titles()
-    params = {
-        "search_query": query,
-        "start": 0,
-        "max_results": max_results
-    }
-    response = requests.get(ARXIV_API_ENDPOINT, params=params)
-    feed = feedparser.parse(response.content)
-    papers = [
-        {"title": entry.title, "pdf_link": entry.link.replace("abs", "pdf"), "published": entry.published}
-        for entry in feed.entries
-        if entry.title not in all_titles
-    ]
+    papers = []
+    start = 0
+
+    while len(papers) < max_results:
+        params = {
+            "search_query": query,
+            "start": start,
+            "max_results": max_results
+        }
+        response = requests.get(ARXIV_API_ENDPOINT, params=params)
+        feed = feedparser.parse(response.content)
+        new_papers = [
+            {"title": entry.title, "pdf_link": entry.link.replace("abs", "pdf"), "published": entry.published}
+            for entry in feed.entries
+        ]
+        for paper in new_papers:
+            if paper["title"] not in all_titles or len(papers) < max_results:
+                papers.append(paper)
+        start += max_results
+
     if not papers:
         print("条件に合った論文がありません")
-    return papers
+    return papers[:max_results]
 
 def download_paper_text(url):
     # 指定されたURLからPDFをダウンロードし、テキストに変換する。

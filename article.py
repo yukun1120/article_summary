@@ -39,7 +39,7 @@ def get_all_paper_titles():
     all_titles = [entry["properties"]["名前"]["title"][0]["text"]["content"] for entry in entries]
     return all_titles
 
-def search_arxiv_papers(query, max_results=10):
+def search_arxiv_papers(query, max_results=5):
     # arXivから論文を検索して結果を返す。
     all_titles = get_all_paper_titles()
     papers = []
@@ -66,12 +66,12 @@ def search_arxiv_papers(query, max_results=10):
         print("条件に合った論文がありません")
     return papers[:max_results]
 
-def download_paper_text(url):
-    # 指定されたURLからPDFをダウンロードし、テキストに変換する。
-    response = requests.get(url)
-    with io.BytesIO(response.content) as pdf_file:
-        reader = PyPDF2.PdfReader(pdf_file)
-        return "\n".join(page.extract_text() for page in reader.pages)
+# def download_paper_text(url):
+#     # 指定されたURLからPDFをダウンロードし、テキストに変換する。
+#     response = requests.get(url)
+#     with io.BytesIO(response.content) as pdf_file:
+#         reader = PyPDF2.PdfReader(pdf_file)
+#         return "\n".join(page.extract_text() for page in reader.pages)
 
 # def generate_summary(system_message, user_message):
 #     #ChatGPTを使用してテキストの要約を生成する。
@@ -117,7 +117,7 @@ def main():
         print(f"PDF Link: {paper['pdf_link']}")
         print(f"Published: {paper['published']}")
 
-        pdf_text = download_paper_text(paper['pdf_link'])
+        # pdf_text = download_paper_text(paper['pdf_link'])
 
         with open('prompt.txt', 'r', encoding='utf-8') as file:
             system_message = file.read()

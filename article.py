@@ -3,12 +3,17 @@ import feedparser
 import io
 import PyPDF2
 import os
+import schedule
+import time
+import logging
 from openai import OpenAI
 from notion_client import Client
 from dotenv import load_dotenv
 
 # 環境変数の読み込み
 load_dotenv()
+
+logging.basicConfig(level=logging.INFO)
 
 # APIキーの設定
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -23,6 +28,7 @@ notion_client = Client(auth=NOTION_API_KEY)
 
 # OpenAIクライアントの初期化
 openai_client = OpenAI(api_key=OPENAI_API_KEY)
+
 
 def get_all_paper_titles():
     # Notionのデータベースから全てのエントリを取得する
@@ -102,6 +108,7 @@ def add_to_notion_database(db_id, title, link, summary, published):
     print("Notion database entry created:", response)
 
 def main():
+    logging.info("Task started")
     query = "artificial intelligence OR deep learning OR quantum mechanics OR generative AI OR generative models OR prompt OR large language models"
     papers = search_arxiv_papers(query)
 
@@ -120,7 +127,11 @@ def main():
         # print(f"Summary: {summary}\n")
 
         add_to_notion_database(NOTION_DB_ID, paper['title'], paper['pdf_link'], summary, paper['published'])
+    logging.info("Task finished")
 
 if __name__ == "__main__":
-    main()
+    schedule.every().day.at("06:00").do(main)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 

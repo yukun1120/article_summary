@@ -9,6 +9,7 @@ import logging
 from openai import OpenAI
 from notion_client import Client
 from dotenv import load_dotenv
+from concurrent.futures import ThreadPoolExecutor
 
 # 環境変数の読み込み
 load_dotenv()
@@ -60,6 +61,7 @@ def search_arxiv_papers(query, max_results=5):
         for paper in new_papers:
             if paper["title"] not in all_titles or len(papers) < max_results:
                 papers.append(paper)
+                print(paper)
         start += max_results
 
     if not papers:
@@ -110,7 +112,12 @@ def add_to_notion_database(db_id, title, link, summary, published):
 def main():
     logging.info("Task started")
     query = "artificial intelligence OR deep learning OR quantum mechanics OR generative AI OR generative models OR prompt OR large language models"
-    papers = search_arxiv_papers(query)
+    # papers = search_arxiv_papers(query)
+
+    with ThreadPoolExecutor() as executor:
+        paper_lists = list(executor.map(search_arxiv_papers, [query]*1))
+
+    papers = [paper for paper_list in paper_lists for paper in paper_list]
 
     for paper in papers:
         print(f"Title: {paper['title']}")
@@ -119,8 +126,8 @@ def main():
 
         # pdf_text = download_paper_text(paper['pdf_link'])
 
-        with open('prompt.txt', 'r', encoding='utf-8') as file:
-            system_message = file.read()
+        # with open('prompt.txt', 'r', encoding='utf-8') as file:
+        #     system_message = file.read()
 
         summary = ""
         # summary = generate_summary(system_message, pdf_text)
@@ -130,8 +137,9 @@ def main():
     logging.info("Task finished")
 
 if __name__ == "__main__":
-    schedule.every().day.at("06:00").do(main)
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+    main()
+    # schedule.every().day.at("06:00").do(main)
+    # while True:
+    #     schedule.run_pending()
+    #     time.sleep(1)
 

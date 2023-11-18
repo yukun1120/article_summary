@@ -9,7 +9,6 @@ import logging
 from openai import OpenAI
 from notion_client import Client
 from dotenv import load_dotenv
-from concurrent.futures import ThreadPoolExecutor
 
 # 環境変数の読み込み
 load_dotenv()
@@ -112,12 +111,7 @@ def add_to_notion_database(db_id, title, link, summary, published):
 def main():
     logging.info("Task started")
     query = "artificial intelligence OR deep learning OR quantum mechanics OR generative AI OR generative models OR prompt OR large language models"
-    # papers = search_arxiv_papers(query)
-
-    with ThreadPoolExecutor() as executor:
-        paper_lists = list(executor.map(search_arxiv_papers, [query]*1))
-
-    papers = [paper for paper_list in paper_lists for paper in paper_list]
+    papers = search_arxiv_papers(query)
 
     for paper in papers:
         print(f"Title: {paper['title']}")
